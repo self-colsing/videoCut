@@ -13,10 +13,41 @@
     background: rgba(0, 0, 0, .9);
 }
 
-.cutCanvasContainer #cutCanvas {
+.cutCanvasContainer .cutCanvas {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%,-50%);
 }
 
+.cutCanvasContainer #cutTools{
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 40px;
+    height: 100%;
+    background: white;
+    z-index: 99;
+}
+
+.cutCanvasContainer #cutTools .cutToolsItem{
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    cursor: pointer;
+    /* margin-bottom: 20px; */
+    transition: .5s;
+}
+
+.cutCanvasContainer #cutTools .active{
+    background: rgba(0,0,0,0.2);
+}
+
+.cutCanvasContainer #cutTools .cutToolsItem:hover{
+    background: rgba(0,0,0,0.1);
+}
+
+.cutCanvasContainer #cutTools .active:hover{
+    background: rgba(0,0,0,0.2);
+}
