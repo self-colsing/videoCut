@@ -2,29 +2,83 @@
 class Tool {
     constructor(params) {
         this.id = params.id;
+        this.callBack = params.callBack;
+        this.history = Tool.getHistroy();
         //用作标记用
         this.canvas = document.getElementById(this.id);
         this.setScope();
     }
 
     //history用于记录历史图层
-    getHistroy() {
-        if(!Tool.history) Tool.history = [];
-        return Tool.history;
+    static getHistroy() {
+        if(!this.history) {
+            this.history = [];
+            this.now = -1;
+        }
+        return this.history;
     }
     
-    addHistory(params) {
+    //添加历史图层
+    static addHistory(params) {
         if(this.history.length>=10) {
             //把第二个图层合并到第一个图层上，然后删除第二个图层
-            this.metgeCanvas();
-            this.history.splice(1,1);
+            Tool.metgeCanvas();
+        }
+        let now = Tool.getNow();
+        let i = now + 1;
+        while(i<this.history.length) {
+            this.removeCanvas(i);
         }
         this.history.push(params);
+        Tool.setNow(this.history.length-1);
+    }
+    
+    static getNow() {
+        return this.now;
+    }
+
+    static setNow(now) {
+        this.now = now;
+    }
+
+    //切换上一个图层
+    static beforeCanvas() {
+        if(this.now === undefined || this.now < 0) return false;
+        this.history[this.now].dom.style.display = "none";
+        this.now = this.now - 1;
+
+        if(this.now < 0) return false;
+        return true;
+    }
+
+    //切换下一个图层
+    static nextCanvas() {
+        if(this.now === undefined || this.now >= this.history.length-1) return false;
+        this.now = this.now + 1;
+        this.history[this.now].dom.style.display = "block";
+
+        if(this.now >= this.history.length-1) return false;
+        return true;
+    }
+
+    //合并底层canvas
+    static metgeCanvas() {
+        let canvas = this.history[0].dom;
+        let copyCanvas = this.history[1].dom;
+        let ctx = canvas.getContext("2d");
+        ctx.drawImage(copyCanvas,0,0,canvas.width,canvas.height);
+        Tool.removeCanvas(1);
+    }
+
+    //index是history中需要去除的canvas对应的下标
+    static removeCanvas(index) {
+        let removeDom = this.history[index].dom; //item-index是因为每去除一个元素，后面的元素下标都会对应-1
+        removeDom.parentNode.removeChild(removeDom);
+        this.history.splice(index,1);
     }
 
     //创建虚拟画布用作图层
     addCanvas() {
-        this.history = this.getHistroy();
         let id = 0;
         if(this.history.length) id = this.history[this.history.length-1].id+1;
 
@@ -39,19 +93,10 @@ class Tool {
         this.ctx = visualCanvas.getContext("2d");
         this.setConfig();
 
-        this.addHistory({
+        Tool.addHistory({
             dom: visualCanvas,
             id
         });
-    }
-
-    //合并底层canvas
-    metgeCanvas() {
-        let canvas = this.history[0].dom;
-        let copyCanvas = this.history[1].dom;
-        let ctx = canvas.getContext("2d");
-        ctx.drawImage(copyCanvas,0,0,canvas.width,canvas.height);
-        copyCanvas.parentNode.removeChild(copyCanvas);
     }
 
     //配置画图的参数
@@ -175,6 +220,7 @@ class Brush extends Tool {
     mouseEnd() {
         if(this.onMove) {
             this.onMove = false;
+            this.callBack(this.history);
         }
     }
 }
@@ -222,6 +268,52 @@ class Eraser extends Tool {
     mouseEnd() {
         if(this.onMove) {
             this.onMove = false;
+            this.callBack(this.history);
+        }
+    }
+}
+
+class Rectangle extends Tool {
+    constructor(params) {
+        super(params);
+        this.onMove = false; //判断鼠标是否按住滑动
+    }
+    setConfig() {
+        let ctx = this.ctx;
+        ctx.lineWidth = "3";
+        ctx.strokeStyle = "red";
+        ctx.fillStyle = "blue";
+    }
+    mouseStart(e) {
+        let clientX = e.clientX;
+        let clientY = e.clientY;
+        this.setScope();
+        //画布内才触发
+        if(clientX>=this.scope.x[0] && clientX<=this.scope.x[1] && clientY>=this.scope.y[0] && clientY<=this.scope.y[1]) {
+            this.addCanvas();
+            this.onMove = true;
+            this.lastX = clientX; 
+            this.lastY = clientY;
+        }
+    }
+    mouseMove(e) {
+        if(this.onMove) {
+            let clientX = e.clientX;
+            let clientY = e.clientY;
+            //画布外当在边框处理
+            clientX = clientX<this.scope.x[0]?this.scope.x[0]:clientX>this.scope.x[1]?this.scope.x[1]:clientX;
+            clientY = clientY<this.scope.y[0]?this.scope.y[0]:clientY>this.scope.y[1]?this.scope.y[1]:clientY;
+            this.nowX = clientX;
+            this.nowY = clientY;
+            let ctx = this.ctx; 
+            ctx.clearRect(0,0,this.canvas.width,this.canvas.height); //每次绘画都要清空画布
+            ctx.strokeRect(this.lastX - this.scope.x[0],this.lastY - this.scope.y[0],this.nowX - this.lastX,this.nowY - this.lastY);
+        }
+    }
+    mouseEnd() {
+        if(this.onMove) {
+            this.onMove = false;
+            this.callBack(this.history);
         }
     }
 }

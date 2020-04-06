@@ -44,10 +44,19 @@
     background: rgba(0,0,0,0.2);
 }
 
+.cutCanvasContainer #cutTools .unable{
+    color: gray;
+    cursor: not-allowed;
+}
+
 .cutCanvasContainer #cutTools .cutToolsItem:hover{
     background: rgba(0,0,0,0.1);
 }
 
 .cutCanvasContainer #cutTools .active:hover{
     background: rgba(0,0,0,0.2);
+}
+
+.cutCanvasContainer #cutTools .unable:hover{
+    background: white;
 }
