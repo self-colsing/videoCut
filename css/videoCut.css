@@ -60,3 +60,13 @@
 .cutCanvasContainer #cutTools .unable:hover{
     background: white;
 }
+
+.cutCanvasContainer #visualInput {
+    position: fixed;
+    overflow: hidden;
+    font-family: Arial;
+    background: transparent;
+    outline: none;;
+    z-index: 99;
+    font-size: 16px;
+}

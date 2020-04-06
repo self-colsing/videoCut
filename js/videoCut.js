@@ -55,6 +55,9 @@ class VideoCut {
         },{
             obj: new Rectangle(params),
             name: "正"
+        },{
+            obj: new Font(params),
+            name: "文"
         }];
 
         //批量添加工具
