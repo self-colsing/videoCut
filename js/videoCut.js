@@ -36,7 +36,15 @@ class VideoCut {
         canvas.height = video.clientHeight/video.clientWidth * canvas.width;
         context.drawImage(video,0,0,canvas.width,canvas.height);
 
+        //虚拟画布，用作绘画用
+        let visualCanvas = document.createElement("canvas");
+        visualCanvas.id = "visualCanvas";
+        visualCanvas.className = "cutCanvas";
+        visualCanvas.width = canvas.width;
+        visualCanvas.height = canvas.height;
+
         div.appendChild(canvas);
+        div.appendChild(visualCanvas);
         document.body.appendChild(div);
     }
 
@@ -44,7 +52,7 @@ class VideoCut {
         let params = {
             id: "cutCanvas",
             history: this.history,
-            callBack: this.finishDraw.bind(this) //绘画结束触发的回调函数
+            callback: this.finishDraw.bind(this) //绘画结束触发的回调函数
         };
         this.tools = [{
             obj: new Brush(params),
@@ -105,14 +113,13 @@ class VideoCut {
     clickTools(e) {
         let dom = e.path[0];
         let index = dom.id.split("tools_")[1];
-
+        
         if(this.nowTools !==undefined) {
             if(this.nowTools === index) return; //重复点击返回
             if(this.tools[this.nowTools]) this.tools[this.nowTools].obj.destroy(); //销毁上一个的点击事件
         }
         let activeDom = document.getElementById("cutTools").getElementsByClassName("active")[0];
-        if(this.nowTools) activeDom.className = activeDom.className.replace(" active",""); //把active类去掉
-
+        if(this.nowTools && activeDom) activeDom.className = activeDom.className.replace(" active",""); //把active类去掉
         this.tools[index].obj.init();
         this.nowTools = index;
 
@@ -171,12 +178,60 @@ class VideoCut {
     }
 
     submit() {
+        let history = Tool.getHistroy();
+        let now = Tool.getNow();
+        let video = document.getElementById(this.videoId);
+        let canvas = document.getElementById("cutCanvas");
+        let visualCanvas = document.getElementById("visualCanvas");
+        for(let i=0;i<=now;i++) {
+            visualCanvas.getContext("2d").drawImage(history[i].dom,0,0,visualCanvas.width,visualCanvas.height);
+            history[i].dom.style.display = "none";
+        }
+        canvas.getContext("2d").drawImage(visualCanvas,0,0,visualCanvas.width,visualCanvas.height);
+        visualCanvas.style.display = "none";
 
+        //清楚之前的截图
+        let dom = document.getElementById("showCut");
+        if(dom) dom.parentNode.removeChild(dom);
+        
+        let img = document.createElement("img");
+        img.src = canvas.toDataURL(); //转成base64
+        document.body.appendChild(img);
+        img.id = "showCut";
+        // img.style.display = "block";
+        img.style.width = video.clientWidth + "px";
+        img.style.height = video.clientHeight + "px";
+        this.cancel();
+
+        //创建上传按钮
+        let button = document.createElement("button");
+        button.id = "submitButton";
+        button.innerHTML = "上传";
+        document.body.appendChild(button);
+        button.addEventListener("click",this.handleImg.bind(this));
     }
 
     cancel() {
+        this.tools.forEach(item=> {
+            item.obj.destroy()
+        })
+        Tool.history = [];
+        Tool.now = -1;
+        this.nowTools = undefined;
+
         let dom = document.getElementsByClassName("cutCanvasContainer")[0];
         dom.parentNode.removeChild(dom);
         video.play();
+
+        
+    }
+
+    //上传图片相关代码
+    handleImg() {
+        let img = document.getElementById("showCut");
+
+        Ajax.post("http://localhost:3000","img="+img.src,(data)=>{
+            console.log(data);
+        })
     }
 }

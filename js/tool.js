@@ -2,7 +2,7 @@
 class Tool {
     constructor(params) {
         this.id = params.id;
-        this.callBack = params.callBack;
+        this.callback = params.callback;
         this.history = Tool.getHistroy();
         //用作标记用
         this.canvas = document.getElementById(this.id);
@@ -63,11 +63,11 @@ class Tool {
 
     //合并底层canvas
     static metgeCanvas() {
-        let canvas = this.history[0].dom;
-        let copyCanvas = this.history[1].dom;
+        let canvas = document.getElementById("visualCanvas");
+        let copyCanvas = this.history[0].dom;
         let ctx = canvas.getContext("2d");
         ctx.drawImage(copyCanvas,0,0,canvas.width,canvas.height);
-        Tool.removeCanvas(1);
+        Tool.removeCanvas(0);
     }
 
     //index是history中需要去除的canvas对应的下标
@@ -167,7 +167,7 @@ class Tool {
     }
     //取消事件绑定
     removeEvent() {
-        this.functionCache.forEach(item=> {
+        if(this.functionCache)  this.functionCache.forEach(item=> {
             document.removeEventListener(item.name,item.function);
         })
     }
@@ -220,7 +220,7 @@ class Brush extends Tool {
     mouseEnd() {
         if(this.onMove) {
             this.onMove = false;
-            this.callBack(this.history);
+            this.callback(this.history);
         }
     }
 }
@@ -268,7 +268,7 @@ class Eraser extends Tool {
     mouseEnd() {
         if(this.onMove) {
             this.onMove = false;
-            this.callBack(this.history);
+            this.callback(this.history);
         }
     }
 }
@@ -313,7 +313,7 @@ class Rectangle extends Tool {
     mouseEnd() {
         if(this.onMove) {
             this.onMove = false;
-            this.callBack(this.history);
+            this.callback(this.history);
         }
     }
 }
@@ -327,34 +327,30 @@ class Font extends Tool {
     }
 
     setConfig() {
-        let ctx = this.ctx;
-        let color = "red";
-        ctx.lineWidth = "3";
-        ctx.strokeStyle = "red";
-        ctx.fillStyle = "blue";
-        this.color = color;
+        
     }
 
     //创建input 
     addInput() {
-        let color = "red";
+        this.color = "red";
+        this.fontSize = 22;
+        
+        let color = this.color;
+        let lineHeight = this.fontSize + 2 + "px";
         let dom = document.getElementsByClassName("cutCanvasContainer")[0];
         let input = document.createElement("textarea");
-        let lineHeight = "18px";
 
         input.id = "visualInput";
         input.style.color = color;
-        // input.style.padding = "10px";
         input.style.border = "1px solid " + color;
         input.style.display = "none";
         input.style.resize = "none";
+        input.style.fontSize = this.fontSize + "px";
         input.style.height = lineHeight;
+        input.style.lineHeight = lineHeight;
         input.setAttribute("auto-height",true);
         dom.appendChild(input);
         this.input = input;
-
-        //绑定事件
-        this.addInputEvent();
     }
 
     addInputEvent() {
@@ -389,37 +385,50 @@ class Font extends Tool {
             item.dom.addEventListener(item.name,item.func);
         })
     }
-
+    destroyInputEvent() {
+        this.inputCache.forEach(item=> {
+            item.dom.removeEventListener(item.name,item.func);
+        })
+    }
     //input失去焦点使触发
     inputBlur() {
         this.onWrite = false;
-        this.drawCanvas();
-        this.input.style.width = "100px";
-        this.input.style.height = "18px";
+        //如果没有写的话就去除
+        if(this.input.value === "") {
+            Tool.removeCanvas(this.history.length-1);
+            Tool.setNow(Tool.getNow()-1);
+        }
+        else {
+            this.drawCanvas();
+            this.callback(this.history);
+        };
+
+        this.input.style.width = "200px";
+        this.input.style.height = this.fontSize+2+"px";
         this.input.style.display = "none";
         this.input.value = "";
-
-        this.callBack(this.history);
+        this.destroyInputEvent();
     }
 
     drawCanvas() {
-        
         this.ctx.fillStyle = "red";
         this.ctx.textAlign="left";
         this.ctx.textBaseline="top";
-        this.ctx.font = 'normal 16px Arial';
+        this.ctx.font = "normal "+ this.fontSize +"px Arial";
         
         let x = parseInt(this.input.style.left) - this.scope.x[0] + 1;
-        let y = parseInt(this.input.style.top) - this.scope.y[0] + 1;
+        let y = parseInt(this.input.style.top) - this.scope.y[0] + 3;
         
         //用于存储每行的字符
         let arr = [];
         let count = 0;
+        let lineHeight = this.fontSize + 2;
+
         for(let i=0;i<this.input.value.length;i++) {
             arr.push(this.input.value[i]);
             let width = this.ctx.measureText(arr.join("")).width; //arr中的字符总宽度
             if(this.input.value[i]==="\n") {
-                this.ctx.fillText(arr.join(""),x,y+count*18);
+                this.ctx.fillText(arr.join(""),x,y+count*lineHeight);
                 this.input.value = this.input.value.slice(i,this.input.value.length);
                 arr = [];
                 i = 0;
@@ -428,14 +437,15 @@ class Font extends Tool {
             if(width>this.input.clientWidth) {
                 arr.pop();   
                 i = i-1;
-                this.ctx.fillText(arr.join(""),x,y+count*18);
+                this.ctx.fillText(arr.join(""),x,y+count*lineHeight);
                 this.input.value = this.input.value.slice(i,this.input.value.length);
                 arr = [];
                 i=0;
                 count++;
             }
         }
-        this.ctx.fillText(arr.join(""),x,y+count*18);
+        
+        this.ctx.fillText(arr.join(""),x,y+count*lineHeight);
     }
 
     //用于移动textarea
@@ -483,7 +493,8 @@ class Font extends Tool {
     keydown(e) {
         //按回车时
         if(e.keyCode === 13) {
-            this.input.style.height = this.input.scrollHeight+18+"px";
+            let lineHeight = this.fontSize + 2;
+            this.input.style.height = this.input.scrollHeight+lineHeight+"px";
             this.clickEnter = true;
         }
         //scrollHeight的变更需要等待
@@ -497,6 +508,7 @@ class Font extends Tool {
         //画布内才触发
         if(clientX>=this.scope.x[0] && clientX<=this.scope.x[1] && clientY>=this.scope.y[0] && clientY<=this.scope.y[1]) {
             if(!this.onWrite) {
+                this.addInputEvent();
                 this.addCanvas();
                 this.onWrite = true;
                 this.input.style.display = "block";
