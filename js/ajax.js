@@ -11,6 +11,5 @@ class Ajax {
             if(xhr.readyState === 4 && (xhr.status === 200 || xhr.status === 304)) callback.call(this,xhr.responseText);
         })
         xhr.send(params);
-        callback();
     }
 }

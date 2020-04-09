@@ -7,6 +7,7 @@ class VideoCut {
         for(let key in temp) {
             this[key] = params[key]?params[key]:temp[key];
         }
+        this.videoWay = 0; //0是横屏，1是竖屏
         this.history = []; //用于存储历史图层
 
         //绑定截图按钮
@@ -32,8 +33,13 @@ class VideoCut {
         canvas.id = "cutCanvas";
         canvas.className = "cutCanvas";
         
-        canvas.width = 800;
-        canvas.height = video.clientHeight/video.clientWidth * canvas.width;
+        canvas.width = document.documentElement.clientWidth - 200;
+        canvas.height = video.videoHeight/video.videoWidth * canvas.width;
+        if(canvas.height > document.documentElement.clientHeight - 200) {
+            canvas.height = document.documentElement.clientHeight - 200;
+            canvas.width = canvas.height * video.videoWidth/video.videoHeight;
+            this.videoWay = 1;
+        }
         context.drawImage(video,0,0,canvas.width,canvas.height);
 
         //虚拟画布，用作绘画用
@@ -193,12 +199,15 @@ class VideoCut {
         //清楚之前的截图
         let dom = document.getElementById("showCut");
         if(dom) dom.parentNode.removeChild(dom);
+        dom = document.getElementById("submitButton");
+        if(dom) dom.parentNode.removeChild(dom);
         
         let img = document.createElement("img");
         img.src = canvas.toDataURL(); //转成base64
-        document.body.appendChild(img);
+        document.getElementsByClassName("imgContainer")[0].appendChild(img);
         img.id = "showCut";
         // img.style.display = "block";
+
         img.style.width = video.clientWidth + "px";
         img.style.height = video.clientHeight + "px";
         this.cancel();
@@ -207,7 +216,7 @@ class VideoCut {
         let button = document.createElement("button");
         button.id = "submitButton";
         button.innerHTML = "上传";
-        document.body.appendChild(button);
+        document.getElementsByClassName("imgContainer")[0].appendChild(button);
         button.addEventListener("click",this.handleImg.bind(this));
     }
 
@@ -222,8 +231,6 @@ class VideoCut {
         let dom = document.getElementsByClassName("cutCanvasContainer")[0];
         dom.parentNode.removeChild(dom);
         video.play();
-
-        
     }
 
     //上传图片相关代码

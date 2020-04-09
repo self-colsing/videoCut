@@ -5,6 +5,40 @@
     font-size: 0;
 }
 
+html {
+    background: rgb(232, 232, 232);
+}
+
+.container {
+    margin: 10px auto;
+    background: white;
+    border-radius: 5px;
+    width: 95%;
+    min-width: 1000px;
+}
+
+.container .title {
+    padding: 10px;
+    font-size: 16px;
+    color: rgb(4, 116, 200);
+}
+
+.container .toolContainer {
+    margin: 0 1%;
+    display: flex;
+    justify-content: space-between;
+}
+
+.container .toolContainer .videoContainer,
+.container .toolContainer .imgContainer {
+    border: 1px solid rgb(198, 206, 222);
+    width: 49%;
+}
+
+.container #video {
+    background: black;
+}
+
 button {
     margin-left: 5px;
     font-size: 14px;
@@ -76,4 +110,9 @@ button {
     outline: none;;
     z-index: 99;
     font-size: 16px;
+}
+
+#showCut {
+    background: black;
+    object-fit: contain;
 }

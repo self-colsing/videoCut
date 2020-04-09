@@ -137,11 +137,11 @@ class Tool {
     mouseEnd() {
         throw new Error("function mouseEnd must rewrite");
     }
-
+    //点击工具时候触发
     init() {
         this.addEvent();
     }
-
+    //点击其他工具时触发
     destroy() {
         this.removeEvent();
     }
@@ -182,6 +182,10 @@ class Brush extends Tool {
         let ctx = this.ctx;
         ctx.lineWidth="3";
         ctx.strokeStyle="red";
+    }
+    init() {
+        console.log(123);
+        this.addEvent();
     }
     mouseStart(e) {
         let clientX = e.clientX;
