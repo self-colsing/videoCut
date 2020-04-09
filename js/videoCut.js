@@ -216,7 +216,7 @@ class VideoCut {
         let button = document.createElement("button");
         button.id = "submitButton";
         button.innerHTML = "上传";
-        document.getElementsByClassName("imgContainer")[0].appendChild(button);
+        document.getElementsByClassName("toolButton")[0].appendChild(button);
         button.addEventListener("click",this.handleImg.bind(this));
     }
 
