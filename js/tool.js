@@ -20,11 +20,13 @@ class Tool {
     
     //添加历史图层
     static addHistory(params) {
-        if(this.history.length>=10) {
+        let now = Tool.getNow();
+
+        if(this.history.length>=10 && now === 9) {
             //把第二个图层合并到第一个图层上，然后删除第二个图层
             Tool.metgeCanvas();
         }
-        let now = Tool.getNow();
+        
         let i = now + 1;
         while(i<this.history.length) {
             this.removeCanvas(i);
@@ -46,7 +48,6 @@ class Tool {
         if(this.now === undefined || this.now < 0) return false;
         this.history[this.now].dom.style.display = "none";
         this.now = this.now - 1;
-
         if(this.now < 0) return false;
         return true;
     }
@@ -81,7 +82,6 @@ class Tool {
     addCanvas() {
         let id = 0;
         if(this.history.length) id = this.history[this.history.length-1].id+1;
-
         let visualCanvas = document.createElement("canvas");
         visualCanvas.id = "visualCanvas_"+id;
         visualCanvas.className = "cutCanvas";
@@ -421,7 +421,7 @@ class Font extends Tool {
         this.ctx.font = "normal "+ this.fontSize +"px Arial";
         
         let x = parseInt(this.input.style.left) - this.scope.x[0] + 1;
-        let y = parseInt(this.input.style.top) - this.scope.y[0] + 3;
+        let y = parseInt(this.input.style.top) - this.scope.y[0] + 2; //谷歌有3像素差别
         
         //用于存储每行的字符
         let arr = [];

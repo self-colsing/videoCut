@@ -208,8 +208,8 @@ class VideoCut {
         img.id = "showCut";
         // img.style.display = "block";
 
-        img.style.width = video.clientWidth + "px";
-        img.style.height = video.clientHeight + "px";
+        // img.style.width = video.clientWidth + "px";
+        // img.style.height = video.clientHeight + "px";
         this.cancel();
 
         //创建上传按钮
