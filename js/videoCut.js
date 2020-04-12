@@ -12,7 +12,7 @@ class VideoCut {
 
         //绑定截图按钮
         document.getElementById(this.cutButtonId).addEventListener("click",this.clickCut.bind(this));
-        setTimeout(()=>{this.clickCut();},1000)
+        // setTimeout(()=>{this.clickCut();},1000)
     }
 
     clickCut() {
