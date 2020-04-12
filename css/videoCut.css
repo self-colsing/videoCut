@@ -141,3 +141,73 @@ html {
     font-size: 16px;
 }
 
+.cutCanvasContainer #cutTools .cutToolsConfig {
+    position: absolute;
+    top: 0;
+    right: 105%;
+    width: 40px;
+    background: white;
+}
+
+.cutCanvasContainer #cutTools .cutToolsConfig .widthConfig .widthConfigItem{
+    position: relative;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    transition: .5s;
+}
+
+.cutCanvasContainer #cutTools .cutToolsConfig .widthConfig {
+    padding-bottom: 5px;
+    border-bottom: 1px solid gray;
+}
+
+.cutCanvasContainer #cutTools .cutToolsConfig .widthConfig .widthConfigItem:hover{
+    background: rgba(0,0,0,0.1);
+}
+
+.cutCanvasContainer #cutTools .cutToolsConfig .widthConfig .active{
+    background: rgba(0,0,0,0.2);
+}
+
+.cutCanvasContainer #cutTools .cutToolsConfig .widthConfig .active:hover{
+    background: rgba(0,0,0,0.2);
+}
+
+.cutCanvasContainer #cutTools .cutToolsConfig .widthConfig .widthConfigItem .widthConfigDot{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    border-radius: 50%;
+    background: black;
+}
+
+.cutCanvasContainer #cutTools .cutToolsConfig .colorConfig {
+    padding-top: 5px;
+}
+
+.cutCanvasContainer #cutTools .cutToolsConfig .colorConfig .colorConfigShow{
+    margin: 0 auto;
+    width: 32px;
+    height: 32px;
+    box-sizing: border-box;
+    border: 1px solid gray;
+}
+
+.cutCanvasContainer #cutTools .cutToolsConfig .colorConfig .colorConfigContainer{
+    margin: 5px auto;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    width: 32px;
+}
+
+.cutCanvasContainer #cutTools .cutToolsConfig .colorConfig .colorConfigContainer .colorConfigItem{
+    margin-bottom: 2px;
+    box-sizing: border-box;
+    width: 15px;
+    height: 15px;
+    border: 1px solid gray;
+    cursor: pointer;
+}

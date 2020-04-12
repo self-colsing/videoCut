@@ -4,8 +4,10 @@ class Tool {
         this.id = params.id;
         this.callback = params.callback;
         this.history = Tool.getHistroy();
+        this.toolConfig = Tool.getConfig();
         //用作标记用
         this.canvas = document.getElementById(this.id);
+        this.showConfig = false; //判断是否显示配置菜单
         this.setScope();
     }
 
@@ -99,8 +101,16 @@ class Tool {
         });
     }
 
+    //用于创建配置菜单
+    static getConfig() {
+        if(!this.toolConfig) this.toolConfig = new ToolConfig();
+        return this.toolConfig;
+    }
+
     //配置画图的参数
-    setConfig() {}
+    setConfig() {
+        
+    }
 
     //获取画布距离顶部的距离
     getTop() {
@@ -137,12 +147,28 @@ class Tool {
     mouseEnd() {
         throw new Error("function mouseEnd must rewrite");
     }
+
+
     //点击工具时候触发
     init() {
+        if(this.showConfig) {
+            this.toolConfig.show(this.showConfigType);
+            if(this.config === undefined) {
+                this.toolConfig.setConfig({
+                    lineColor: "red",
+                    lineWidthIndex: 0
+                })
+                this.config = JSON.parse(JSON.stringify(this.toolConfig.getConfig()));
+            } else {
+                this.toolConfig.setConfig(this.config);
+            }
+        };
         this.addEvent();
     }
+
     //点击其他工具时触发
     destroy() {
+        if(this.showConfig) this.config = JSON.parse(JSON.stringify(this.toolConfig.getConfig())); //保存配置信息
         this.removeEvent();
     }
 
@@ -177,16 +203,18 @@ class Brush extends Tool {
     constructor(params) {
         super(params);
         this.onMove = false; //判断鼠标是否按住滑动
+        this.showConfig = true; //显示配置菜单
+        this.showConfigType = "0"; //全部显示
     }
+
     setConfig() {
+        this.config = JSON.parse(JSON.stringify(this.toolConfig.getConfig()));
         let ctx = this.ctx;
-        ctx.lineWidth="3";
-        ctx.strokeStyle="red";
+        let lineWidthArr = ["1","3","5"];
+        ctx.lineWidth= lineWidthArr[this.config.lineWidthIndex];
+        ctx.strokeStyle= this.config.lineColor;
     }
-    init() {
-        console.log(123);
-        this.addEvent();
-    }
+
     mouseStart(e) {
         let clientX = e.clientX;
         let clientY = e.clientY;
@@ -199,6 +227,7 @@ class Brush extends Tool {
             this.lastY = clientY;
         }
     }
+
     mouseMove(e) {
         if(this.onMove) {
             let clientX = e.clientX;
@@ -221,6 +250,7 @@ class Brush extends Tool {
             this.lastY = clientY;
         }
     }
+
     mouseEnd() {
         if(this.onMove) {
             this.onMove = false;
@@ -233,10 +263,16 @@ class Eraser extends Tool {
     constructor(params) {
         super(params);
         this.onMove = false; //判断鼠标是否按住滑动
+        this.showConfig = true; //显示配置菜单
+        this.showConfigType = "1"; //只显示粗细
     }
+
     setConfig() {
-        this.size = 20;
+        this.config = JSON.parse(JSON.stringify(this.toolConfig.getConfig()));
+        let sizeArr = [10,20,30];
+        this.size = sizeArr[this.config.lineWidthIndex];
     }
+
     mouseStart(e) {
         let clientX = e.clientX;
         let clientY = e.clientY;
@@ -249,9 +285,14 @@ class Eraser extends Tool {
             this.lastY = clientY;
         }
     }
+
     mouseMove(e) {
-        if(this.onMove) {
-            let clientX = e.clientX;
+        if(this.onMove) this.onEarser(e);
+    }
+
+    //擦除相关代码
+    onEarser(e) {
+        let clientX = e.clientX;
             let clientY = e.clientY;
             //画布外当在边框处理
             clientX = clientX<this.scope.x[0]?this.scope.x[0]:clientX>this.scope.x[1]?this.scope.x[1]:clientX;
@@ -267,10 +308,13 @@ class Eraser extends Tool {
 
             this.lastX = clientX;
             this.lastY = clientY;
-        }
     }
-    mouseEnd() {
+
+    mouseEnd(e) {
         if(this.onMove) {
+            //完全复制移动时代码，用于只点击一次时触发
+            this.onEarser(e);
+
             this.onMove = false;
             this.callback(this.history);
         }
@@ -281,13 +325,18 @@ class Rectangle extends Tool {
     constructor(params) {
         super(params);
         this.onMove = false; //判断鼠标是否按住滑动
+        this.showConfig = true; //显示配置菜单
+        this.showConfigType = "0"; //全部显示
     }
+
     setConfig() {
+        this.config = JSON.parse(JSON.stringify(this.toolConfig.getConfig()));
         let ctx = this.ctx;
-        ctx.lineWidth = "3";
-        ctx.strokeStyle = "red";
-        ctx.fillStyle = "blue";
+        let lineWidthArr = ["1","3","5"];
+        ctx.lineWidth = lineWidthArr[this.config.lineWidthIndex];
+        ctx.strokeStyle = this.config.lineColor;
     }
+
     mouseStart(e) {
         let clientX = e.clientX;
         let clientY = e.clientY;
@@ -327,11 +376,16 @@ class Font extends Tool {
         super(params);
         this.onWrite = false; //判断是否正在书写
         this.onMove = false; //判断是否在移动input
+        this.showConfig = true; //显示配置菜单
+        this.showConfigType = "2"; //只显示颜色
         this.addInput();
     }
 
     setConfig() {
-        
+        this.config = JSON.parse(JSON.stringify(this.toolConfig.getConfig()));
+        let input = document.getElementById("visualInput");
+        input.style.color = this.config.lineColor;
+        input.style.border = "1px solid " + this.config.lineColor;
     }
 
     //创建input 
@@ -415,7 +469,7 @@ class Font extends Tool {
     }
 
     drawCanvas() {
-        this.ctx.fillStyle = "red";
+        this.ctx.fillStyle = this.config.lineColor;
         this.ctx.textAlign="left";
         this.ctx.textBaseline="top";
         this.ctx.font = "normal "+ this.fontSize +"px Arial";
